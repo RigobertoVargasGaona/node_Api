@@ -1,0 +1,7 @@
+# variables de entorno
+.env
+
+# dependencias
+/node_modules
+# debug log
+.DS_Store 
