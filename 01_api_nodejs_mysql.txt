@@ -346,12 +346,18 @@
                 |                                                                                                                                         |
                   EXPLICACIÓN:   
                     
-                    ⦿  XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
+                    ⦿  Se usa normalmente para crear una base de datos, una tabla de usuarios y agregar un registro inicial. Este código está pensado para MySQL o MariaDB.
 
                 |---------------------------------------------------------------------------------------------------------------------------------------- |
                 
-                    A.   XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
-                    B.   XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
+                    A.   DROP DATABASE IF EXISTS db_node;
+			 Esta línea elimina la base de datos llamada db_node si ya existe, para evitar errores al crearla de nuevo. Es útil cuando quieres reiniciar todo desde cero.
+                    B.   CREATE SCHEMA db_node DEFAULT CHARACTER SET utf8;
+			 Crea una nueva base de datos llamada db_node y define que use el conjunto de caracteres UTF-8, que permite almacenar textos con acentos, ñ, emojis, etc.
+		    C.	 SE db_node;
+                         Indica que las siguientes operaciones (crear tablas, insertar datos, etc.) se hagan dentro de la base de datos db_node.
+		    D. 	Esto inserta un nuevo usuario en la tabla users.
+
                 |                                                                                                                                         |
                 └ --------------------------------------------------------------------------------------------------------------------------------------- ┘
 
@@ -395,12 +401,23 @@
                 |                                                                                                                                         |
                   EXPLICACIÓN:   
                     
-                    ⦿  XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
+                    ⦿  Archivo de configuración tipo .env (archivo de entorno) que normalmente se usa en aplicaciones Node.js (especialmente con frameworks como Express, NestJS, etc.) para guardar variables sensibles o de configuración fuera del código fuente.
 
                 |---------------------------------------------------------------------------------------------------------------------------------------- |
                 
-                    A.   XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
-                    B.   XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
+                    A.   DB_HOST:
+			 Dirección del servidor de base de datos. En este caso, está en la misma máquina donde corre la aplicación (localhost).
+                    B.   DB_USER:
+			 Usuario con el que se conecta a la base de datos. root es el usuario por defecto en MySQL (aunque en producción se recomienda crear otro usuario con menos permisos).
+		    C.   DB_PASSWORD:
+			 Contraseña del usuario de base de datos. Aquí está vacía (algo común en entornos de desarrollo local), pero nunca debe estar vacía en producción.
+		    D.	 DB_NAME:
+			 Nombre de la base de datos que se va a usar. Coincide con la que creaste en el SQL anterior.
+		    E.   DB_PORT:
+			 Puerto por el cual se conecta a MySQL. El puerto 3306 es el puerto estándar para MySQL.
+		    F.	JWT_SECRET:
+                        Clave secreta para firmar y verificar tokens JWT (JSON Web Tokens), que se usan para autenticar usuarios.
+                        Esta cadena debe ser larga, aleatoria y secreta para evitar que atacantes puedan falsificar tokens. No la compartas ni la subas a GitHub.						
                 |                                                                                                                                         |
                 └ --------------------------------------------------------------------------------------------------------------------------------------- ┘
 
@@ -427,12 +444,50 @@
                 |                                                                                                                                         |
                   EXPLICACIÓN:   
                     
-                    ⦿  XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
+                    ⦿  Este bloque de código es un archivo típico en una aplicación Node.js para conectarse a una base de datos MySQL usando el módulo mysql y las variables de entorno del archivo .env.
 
                 |---------------------------------------------------------------------------------------------------------------------------------------- |
                 
-                    A.   XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
-                    B.   XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
+                    A.   require('dotenv').config();
+			 Carga las variables definidas en el archivo .env y las pone disponibles en process.env.
+			 Permite mantener tus credenciales fuera del código fuente (buena práctica de seguridad y portabilidad).
+
+                    B.   const mysql = require('mysql');
+			 Importa la librería mysql para poder conectarte y trabajar con bases de datos MySQL desde Node.js.
+			 Nota: La librería mysql está deprecada (ya no se mantiene). Se recomienda usar mysql2 o un ORM como Sequelize o Prisma en nuevos proyectos.
+		
+		   C.   const db = mysql.createConnection({
+   			 host: process.env.DB_HOST,
+   			 user: process.env.DB_USER,
+  			 password: process.env.DB_PASSWORD,
+    			database: process.env.DB_NAME,
+    			port: process.env.DB_PORT
+			});
+
+			Crea una conexión a la base de datos usando los datos del archivo .env.
+
+			Campos:
+
+			host: Dirección del servidor de base de datos (e.g., localhost).
+
+			user: Usuario (e.g., root).
+
+			password: Contraseña del usuario (puede estar vacía en desarrollo).
+
+			database: Nombre de la base de datos (e.g., db_node).
+
+			port: Puerto de conexión (por defecto 3306).	
+
+		  D.	db.connect(function(err) {
+   			if (err) throw err;
+    			console.log('Base de datos conectada');
+			});
+
+			Intenta conectar con la base de datos. Si hay un error, lanza una excepción (throw err).
+			Si se conecta correctamente, imprime en consola: Base de datos conectada.
+			Esto es útil para comprobar al inicio si tu configuración está correcta.	
+
+
                 |                                                                                                                                         |
                 └ --------------------------------------------------------------------------------------------------------------------------------------- ┘
 
@@ -595,12 +650,58 @@
                 |                                                                                                                                         |
                   EXPLICACIÓN:   
                     
-                    ⦿  XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
+                    ⦿  Este archivo define un modelo de usuario (User) en Node.js, que se conecta a la base de datos y permite realizar operaciones CRUD (crear, leer, actualizar y eliminar) sobre la tabla users.
 
                 |---------------------------------------------------------------------------------------------------------------------------------------- |
                 
-                    A.   XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
-                    B.   XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
+                    A.   IMPORTACIONES Y SETUP
+			const db = require('../config/config');
+			const bcrypt = require('bcryptjs');
+			const User = {};
+
+			db: Importa la conexión a la base de datos desde config/config.js.
+			bcrypt: Se usa para hashear (encriptar) contraseñas de forma segura.
+			User = {}: Objeto que va a almacenar todos los métodos relacionados con los usuarios.
+
+                    B.   User.findAll = (result) => {
+  			 const sql = `SELECT ... FROM users`;
+			 db.query(sql, (err, users) => {
+    			 if (err) {
+                         console.log('Error al listar usuarios: ', err);
+                         result(err, null);
+                         } else {
+                         console.log('Usuarios encontrados: ', users.length);
+                         result(null, users);
+                                }
+                             });
+                          };
+                        Consulta todos los usuarios (excepto sus contraseñas).
+			Usa db.query() para hacer la consulta SQL.
+			El resultado se retorna usando el callback result(err, data).
+
+		     C. User.findById = (id, result) => {
+  			const sql = `SELECT ... FROM users WHERE id = ?`;
+  			db.query(sql, [id], (err, user) => {
+   			if (err) { ... }
+    			else { result(null, user[0]); }
+ 			   });
+			};
+			Busca un usuario por su ID.
+			Utiliza parametrización (?) para evitar inyecciones SQL.
+			Retorna el primer usuario encontrado (debería ser único).	
+
+		    D.  User.findByEmail = (email, result) => {
+  			const sql = `SELECT ... FROM users WHERE email = ?`;
+                        db.query(sql, [email], (err, user) => {
+                        if (err) { ... }
+    			else { result(null, user[0]); }
+  			   });
+			};
+			Busca un usuario por email (clave única).
+			Se usa mucho para login o validaciones.	
+		
+		     E. 		
+
                 |                                                                                                                                         |
                 └ --------------------------------------------------------------------------------------------------------------------------------------- ┘
 

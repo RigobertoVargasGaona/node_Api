@@ -2,21 +2,22 @@
   "name": "node_api",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "npm test",
-    "start": "node index.js"
+  "homepage": "https://github.com/RigobertoVargasGaona/node_Api#readme",
+  "bugs": {
+    "url": "https://github.com/RigobertoVargasGaona/node_Api/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/RigobertoVargasGaona/node_Api.git"
   },
-  "author": "Rigoberto",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/RigobertoVargasGaona/node_Api/issues"
+  "author": "Rigoberto",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test",
+    "start": "node index.js"
   },
-  "homepage": "https://github.com/RigobertoVargasGaona/node_Api#readme",
   "dependencies": {
     "audit": "^0.0.6",
     "bcryptjs": "^3.0.2",
@@ -30,5 +31,6 @@
     "mysql": "^2.18.1",
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.1"
-  }
+  },
+  "devDependencies": {}
 }
