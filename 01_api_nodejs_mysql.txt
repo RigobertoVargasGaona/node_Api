@@ -406,16 +406,16 @@
                 |---------------------------------------------------------------------------------------------------------------------------------------- |
                 
                     A.   DB_HOST:
-			 Dirección del servidor de base de datos. En este caso, está en la misma máquina donde corre la aplicación (localhost).
+			                   Dirección del servidor de base de datos. En este caso, está en la misma máquina donde corre la aplicación (localhost).
                     B.   DB_USER:
-			 Usuario con el que se conecta a la base de datos. root es el usuario por defecto en MySQL (aunque en producción se recomienda crear otro usuario con menos permisos).
-		    C.   DB_PASSWORD:
-			 Contraseña del usuario de base de datos. Aquí está vacía (algo común en entornos de desarrollo local), pero nunca debe estar vacía en producción.
-		    D.	 DB_NAME:
-			 Nombre de la base de datos que se va a usar. Coincide con la que creaste en el SQL anterior.
-		    E.   DB_PORT:
-			 Puerto por el cual se conecta a MySQL. El puerto 3306 es el puerto estándar para MySQL.
-		    F.	JWT_SECRET:
+			                   Usuario con el que se conecta a la base de datos. root es el usuario por defecto en MySQL (aunque en producción se recomienda crear otro usuario con menos permisos).
+		                C.   DB_PASSWORD:
+			                   Contraseña del usuario de base de datos. Aquí está vacía (algo común en entornos de desarrollo local), pero nunca debe estar vacía en producción.
+		                D.	 DB_NAME:
+			                   Nombre de la base de datos que se va a usar. Coincide con la que creaste en el SQL anterior.
+		                E.   DB_PORT:
+			                   Puerto por el cual se conecta a MySQL. El puerto 3306 es el puerto estándar para MySQL.
+		                F.	JWT_SECRET:
                         Clave secreta para firmar y verificar tokens JWT (JSON Web Tokens), que se usan para autenticar usuarios.
                         Esta cadena debe ser larga, aleatoria y secreta para evitar que atacantes puedan falsificar tokens. No la compartas ni la subas a GitHub.						
                 |                                                                                                                                         |
@@ -449,43 +449,39 @@
                 |---------------------------------------------------------------------------------------------------------------------------------------- |
                 
                     A.   require('dotenv').config();
-			 Carga las variables definidas en el archivo .env y las pone disponibles en process.env.
-			 Permite mantener tus credenciales fuera del código fuente (buena práctica de seguridad y portabilidad).
+                         Carga las variables definidas en el archivo .env y las pone disponibles en process.env.
+                         Permite mantener tus credenciales fuera del código fuente (buena práctica de seguridad y portabilidad).
 
                     B.   const mysql = require('mysql');
-			 Importa la librería mysql para poder conectarte y trabajar con bases de datos MySQL desde Node.js.
-			 Nota: La librería mysql está deprecada (ya no se mantiene). Se recomienda usar mysql2 o un ORM como Sequelize o Prisma en nuevos proyectos.
+                          Importa la librería mysql para poder conectarte y trabajar con bases de datos MySQL desde Node.js.
+                          Nota: La librería mysql está deprecada (ya no se mantiene). Se recomienda usar mysql2 o un ORM como Sequelize o Prisma en nuevos proyectos.
 		
-		   C.   const db = mysql.createConnection({
-   			 host: process.env.DB_HOST,
-   			 user: process.env.DB_USER,
-  			 password: process.env.DB_PASSWORD,
-    			database: process.env.DB_NAME,
-    			port: process.env.DB_PORT
-			});
+                    C.   const db = mysql.createConnection({
+                      host: process.env.DB_HOST,
+                      user: process.env.DB_USER,
+                      password: process.env.DB_PASSWORD,
+                        database: process.env.DB_NAME,
+                        port: process.env.DB_PORT
+                    });
 
-			Crea una conexión a la base de datos usando los datos del archivo .env.
+		              	Crea una conexión a la base de datos usando los datos del archivo .env.
 
-			Campos:
+                    Campos:
 
-			host: Dirección del servidor de base de datos (e.g., localhost).
+                    host: Dirección del servidor de base de datos (e.g., localhost).
+                    user: Usuario (e.g., root).
+                    password: Contraseña del usuario (puede estar vacía en desarrollo).
+			              database: Nombre de la base de datos (e.g., db_node).
+              			port: Puerto de conexión (por defecto 3306).	
 
-			user: Usuario (e.g., root).
+                  D.	db.connect(function(err) {
+                    if (err) throw err;
+                      console.log('Base de datos conectada');
+                  });
 
-			password: Contraseña del usuario (puede estar vacía en desarrollo).
-
-			database: Nombre de la base de datos (e.g., db_node).
-
-			port: Puerto de conexión (por defecto 3306).	
-
-		  D.	db.connect(function(err) {
-   			if (err) throw err;
-    			console.log('Base de datos conectada');
-			});
-
-			Intenta conectar con la base de datos. Si hay un error, lanza una excepción (throw err).
-			Si se conecta correctamente, imprime en consola: Base de datos conectada.
-			Esto es útil para comprobar al inicio si tu configuración está correcta.	
+                  Intenta conectar con la base de datos. Si hay un error, lanza una excepción (throw err).
+                  Si se conecta correctamente, imprime en consola: Base de datos conectada.
+                  Esto es útil para comprobar al inicio si tu configuración está correcta.	
 
 
                 |                                                                                                                                         |
@@ -655,18 +651,18 @@
                 |---------------------------------------------------------------------------------------------------------------------------------------- |
                 
                     A.   IMPORTACIONES Y SETUP
-			const db = require('../config/config');
-			const bcrypt = require('bcryptjs');
-			const User = {};
+                        const db = require('../config/config');
+                        const bcrypt = require('bcryptjs');
+                        const User = {};
 
-			db: Importa la conexión a la base de datos desde config/config.js.
-			bcrypt: Se usa para hashear (encriptar) contraseñas de forma segura.
-			User = {}: Objeto que va a almacenar todos los métodos relacionados con los usuarios.
+                        db: Importa la conexión a la base de datos desde config/config.js.
+                        bcrypt: Se usa para hashear (encriptar) contraseñas de forma segura.
+                        User = {}: Objeto que va a almacenar todos los métodos relacionados con los usuarios.
 
-                    B.   User.findAll = (result) => {
-  			 const sql = `SELECT ... FROM users`;
-			 db.query(sql, (err, users) => {
-    			 if (err) {
+                    B.  User.findAll = (result) => {
+                        const sql = `SELECT ... FROM users`;
+                        db.query(sql, (err, users) => {
+                          if (err) {
                          console.log('Error al listar usuarios: ', err);
                          result(err, null);
                          } else {
@@ -676,31 +672,167 @@
                              });
                           };
                         Consulta todos los usuarios (excepto sus contraseñas).
-			Usa db.query() para hacer la consulta SQL.
-			El resultado se retorna usando el callback result(err, data).
+                        Usa db.query() para hacer la consulta SQL.
+                        El resultado se retorna usando el callback result(err, data).
 
-		     C. User.findById = (id, result) => {
-  			const sql = `SELECT ... FROM users WHERE id = ?`;
-  			db.query(sql, [id], (err, user) => {
-   			if (err) { ... }
-    			else { result(null, user[0]); }
- 			   });
-			};
-			Busca un usuario por su ID.
-			Utiliza parametrización (?) para evitar inyecciones SQL.
-			Retorna el primer usuario encontrado (debería ser único).	
+                    C. User.findById = (id, result) => {
+                          const sql = `SELECT ... FROM users WHERE id = ?`;
+                          db.query(sql, [id], (err, user) => {
+                          if (err) { ... }
+                            else { result(null, user[0]); }
+                          });
+                        };
+                          Busca un usuario por su ID.
+                          Utiliza parametrización (?) para evitar inyecciones SQL.
+                          Retorna el primer usuario encontrado (debería ser único).	
 
-		    D.  User.findByEmail = (email, result) => {
-  			const sql = `SELECT ... FROM users WHERE email = ?`;
-                        db.query(sql, [email], (err, user) => {
-                        if (err) { ... }
-    			else { result(null, user[0]); }
-  			   });
-			};
-			Busca un usuario por email (clave única).
-			Se usa mucho para login o validaciones.	
+                    D.  User.findByEmail = (email, result) => {
+                        const sql = `SELECT ... FROM users WHERE email = ?`;
+                                        db.query(sql, [email], (err, user) => {
+                                        if (err) { ... }
+                          else { result(null, user[0]); }
+                          });
+                      };
+                          Busca un usuario por email (clave única).
+                          Se usa mucho para login o validaciones.	
 		
-		     E. 		
+		                E. 		El bloque define una función asíncrona llamada create dentro de un objeto User (probablemente parte de un modelo
+                          o DAO - Data Access Object). Esta función toma dos argumentos: el objeto user que contiene los datos del nuevo 
+                          usuario (nombre, email, contraseña, etc.) y una función result que se usa como callback para manejar el 
+                          resultado de la operación (éxito o error).
+
+                         1.	User.create = async (user, result) => {	
+                            Define una nueva propiedad (o función estática) llamada create dentro del objeto User. 
+                            Es una función asíncrona (async), lo que permite usar await dentro de ella. Recibe el objeto user 
+                            (datos a insertar) y la función result (el callback para devolver la respuesta). 
+
+                         2. const hash = await bcrypt.hash(user.password, 10)
+                            Cifra (hashing) la contraseña. Llama a la función hash de la librería bcrypt 
+                            (una librería común para el cifrado de contraseñas) con la contraseña del usuario 
+                            (user.password). El 10 es el factor de salting (cost factor), que determina la fuerza 
+                            del hash (un valor más alto es más lento pero más seguro). La operación es asíncrona, 
+                            por eso se usa await. 
+
+                         3.  const role = validRoles.includes(user.role) ? user.role : 'user';  
+                            Valida y asigna el rol. Utiliza un operador ternario (? :). Verifica si el rol 
+                            proporcionado en user.role está incluido en el array validRoles. Si es cierto, 
+                            se asigna ese rol (user.role). Si es falso o si no se proporciona, se asigna el rol 
+                            predeterminado 'user'. 
+
+                         4. const sql = \INSERT INTO users(`
+                            Comienza la definición de la variable sql que contendrá la consulta SQL como una plantilla de cadena 
+                            (template literal). Esta consulta es para insertar un nuevo registro en la tabla users. 
+
+                         5. name, ..., updated_at
+                            Especifica la lista de columnas en la tabla users donde se insertarán los valores.
+                         
+                         6. `) VALUES (?,?,?,?,?,?,?,?,?)``
+                            Cierra la lista de columnas e inicia la cláusula VALUES. Indica que se van a insertar 9 valores.
+
+                         7. db.query(sql,
+                            Llama a la función query del objeto db (que representa la conexión a la base de datos), para ejecutar 
+                            la consulta SQL.
+
+                         8. [ user.name, ..., new Date() ]
+                            Pasa un array de valores que serán sustituidos, en orden, en los placeholders (?) de la consulta
+                            SQL. Importante: Se usa la variable hash (la contraseña cifrada) en lugar de user.password. Los campos
+                            created_at y updated_at se llenan con la fecha y hora actual. 
+
+                         9. (err, res) => {    
+                            Define la función callback que se ejecutará una vez que la consulta a la base de datos termine. Recibe un 
+                            objeto err (error, si lo hay) y un objeto res (respuesta/resultado, si la consulta fue exitosa).
+
+                         10. if (err) { ... } else { ... }
+                            Manejo de errores y éxito.
+
+                         11. if (err) { console.log('Error al crear...); result(err, null); }  
+                            Si hay un error (err), se imprime el error en la consola y se llama a la función result (el callback) con el 
+                            error y null como datos, indicando una falla.
+
+                         12. else { console.log('Usuario creado...); result(null, {id: res.insertId, ...user}); } 
+                            Si la consulta es exitosa, se imprime un mensaje de éxito con los datos del usuario. Se llama a la función 
+                            result con null como error y el ID del nuevo registro (res.insertId) junto con los datos originales del usuario, 
+                            indicando un éxito.  
+                    F.  El bloque define la función asíncrona update dentro del objeto User. Esta función se especializa en manejar
+                        la actualización parcial de un registro de usuario. Es decir, solo modifica los campos que se especifican
+                        en el objeto user que recibe, dejando el resto intactos.
+
+                        1. User.update = async (user, result) => {
+                          Define la función asíncrona update en User. Recibe el objeto user (datos a actualizar, incluyendo el id) y el result 
+                          (el callback).
+
+                        2. let fields = [];
+                          Inicializa un array vacío llamado fields para almacenar las partes de la cláusula SET de la consulta SQL 
+                          (ej: "name = ?", "password = ?").
+
+                        3. let values = [];
+                           nicializa un array vacío llamado values para almacenar los valores correspondientes que se sustituirán en los
+                           ? de la consulta.
+
+                        4. if (user.password) {
+                          Inicia una comprobación: si el objeto user incluye una nueva contraseña
+
+                        5. const hash = await bcrypt.hash(user.password, 10);
+                          Si hay contraseña, la cifra (hash) inmediatamente usando bcrypt con un factor de salting de 10.
+
+                        6. fields.push("password = ?");
+                           Agrega la parte de la consulta password = ? al array de campos a actualizar. 
+
+                        7. values.push(hash);
+                           Agrega la contraseña cifrada (hash) al array de valores.
+
+                        8. if (user.email) { ... }, if (user.name) { ... }, etc.
+                            Bloques condicionales que revisan si cada campo (email, nombre, apellido, teléfono, imagen y rol) 
+                            está presente en el objeto user. Si lo está, agregan su respectiva cláusula campo = ? a fields y el 
+                            valor sin cifrar a values.
+
+                        9. fields.push("updated_at = ?");
+                          grega el campo updated_at a la lista de campos. Este campo siempre se actualiza para registrar la hora del 
+                          cambio. 
+
+                       10. values.push(new Date());
+                           Agrega la fecha y hora actual al array de valores para el campo updated_at.
+
+                       11. const sql = \UPDATE users SET ${fields.join(", ")} WHERE id = ?`;`
+                          Construye la consulta SQL final. Usa el array fields, uniéndolos con comas (.join(", ")), para formar la 
+                          cláusula SET dinámica. La cláusula WHERE id = ? es crucial para garantizar que solo se actualice el usuario 
+                          correcto. 
+
+                       12. values.push(user.id);
+                        Manejo de errores y éxito. Si hay un error, lo registra y llama al callback result(err, null). Si es exitoso, registra 
+                        la acción y llama al callback result(null, { id: user.id, ...user }) devolviendo los datos del usuario actualizado.   
+                    
+                    G. Este código define una función llamada delete dentro del objeto User. Esta función recibe el ID del usuario a eliminar y 
+                       una función de callback (result) para manejar el resultado. Su única misión es construir y ejecutar una consulta SQL para 
+                       eliminar permanentemente un registro de la tabla users que coincida con el ID proporcionado.
+
+                       1. User.delete = (id, result) => {
+                          Define la función delete en el objeto User. Recibe el id del usuario que se quiere eliminar y el callback result para manejar 
+                          la respuesta.
+                       
+                       2. const sql = \DELETE FROM users WHERE id = ?`;`
+                          Define la constante sql con la consulta SQL DELETE. Esta consulta indica a la base de datos que elimine una fila de la 
+                          tabla users cuya columna id coincida con el valor que se proporcionará (el placeholder ?).
+
+                       3. db.query(sql, [id], (err, res) => {
+                          Llama a la función query de la conexión a la base de datos (db). Pasa la consulta sql y el array que contiene el id (que sustituirá al ? 
+                          en la cláusula WHERE). El último argumento es el callback para manejar el resultado. 
+
+                       4. if (err) { ... } else { ... }
+                          Manejo de errores y éxito. 
+
+                       5. if (err) { console.log('Error al eliminar...); result(err, null); }
+                          Si hay un error (err) durante la ejecución de la consulta, lo registra en la consola y llama al callback result con el error y null 
+                          como datos de éxito. 
+                       
+                       6. else { console.log('Usuario eliminado...); result(null, res); }
+                          Si la eliminación es exitosa, registra el ID del usuario eliminado en la consola y llama al callback result con null como error y el objeto de 
+                          respuesta de la base de datos (res).
+
+                     H. module.exports = User;
+                        Exporta el objeto User (que ahora contiene las funciones create, update y delete) para que pueda ser utilizado (importado) en otras partes de la 
+                        aplicación (típicamente en los controladores).                          
+
 
                 |                                                                                                                                         |
                 └ --------------------------------------------------------------------------------------------------------------------------------------- ┘
