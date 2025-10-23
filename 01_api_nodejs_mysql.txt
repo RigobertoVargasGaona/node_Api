@@ -855,12 +855,27 @@
                 |                                                                                                                                         |
                   EXPLICACIÓN:   
                     
-                    ⦿  XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
+                    ⦿  Su propósito principal es cargar una clave secreta para JWT desde un archivo de configuración de entorno y hacerla accesible para otras
+                     partes de la aplicación.
 
                 |---------------------------------------------------------------------------------------------------------------------------------------- |
                 
-                    A.   XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
-                    B.   XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
+                    A.   require('dotenv'): 
+                         Carga el módulo de npm llamado dotenv. Este módulo es una herramienta popular que carga variables de entorno desde un archivo 
+                        .env a process.env.
+                    B.  .config(): Es el método que ejecuta la carga. Busca un archivo llamado .env (que no se incluye en el control de versiones, como Git)
+                         en el directorio raíz de la aplicación..
+                    
+                    C.  module.exports = {
+                        Esta es la sintaxis de CommonJS (el sistema de módulos predeterminado de Node.js) para exportar un objeto desde este archivo para que 
+                        otros archivos de la aplicación puedan importarlo (usando require()).
+                    
+                    E.  secretOrKey: process.env.JWT_SECRET                        
+                        Define una propiedad llamada secretOrKey dentro del objeto de configuración.
+                        process.env.JWT_SECRET: Aquí es donde entra en juego la línea 1. Accede a la variable de entorno con el nombre JWT_SECRET que fue cargada 
+                        del archivo .env y asigna su valor a la propiedad secretOrKey.
+                       
+
                 |                                                                                                                                         |
                 └ --------------------------------------------------------------------------------------------------------------------------------------- ┘
                     
@@ -899,13 +914,63 @@
                 |                                                                                                                                         |
                   EXPLICACIÓN:   
                     
-                    ⦿  XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
+                    ⦿  Este bloque de código configura la estrategia de autenticación JWT (JSON Web Token) para un framework de Node.js, muy probablemente Express.js, 
+                        utilizando la popular librería de autenticación passport.
 
                 |---------------------------------------------------------------------------------------------------------------------------------------- |
                 
-                    A.   XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
-                    B.   XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
-                |                                                                                                                                         |
+                    A.  const JwtStrategy = require('passport-jwt').Strategy;
+                        Importa la clase Strategy específica para JWT desde el módulo passport-jwt. Esta clase se usará para definir las reglas de verificación.
+                    
+                    B.  const ExtractJwt = require('passport-jwt').ExtractJwt;
+                        Importa el objeto ExtractJwt, que proporciona métodos para extraer el JWT de la solicitud (por ejemplo, del encabezado de autorización).  
+
+                    C.  const passport = require('passport');
+                        Importa la librería principal passport.
+                    
+                    D.  const Keys = require('./keys');
+                        Importa el objeto que contiene la clave secreta que configuraste en el archivo anterior (secretOrKey).
+
+                    E.  const User = require('../models/user');
+                        Importa el modelo de usuario de tu base de datos (típicamente con Mongoose) para poder buscar al usuario que corresponde al token.
+
+                    F. const opts = {
+                        jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+                        secretOrKey: Keys.secretOrKey
+                      };
+                      Se define el objeto opts (opciones) que JwtStrategy necesita para saber dónde buscar el token y cómo verificarlo.
+                          1. jwtFromRequest: 
+                            Le dice a passport-jwt dónde está el token en la solicitud HTTP. En este caso, el método ExtractJwt.fromAuthHeaderAsBearerToken() busca el token en el encabezado Authorization con el formato: Authorization: Bearer <token>.
+                          
+                          2. secretOrKey:
+                            Proporciona la clave secreta (JWT_SECRET) que se usará para descifrar y verificar la firma del token. Si la firma no coincide, significa que el token fue manipulado o no es válido.
+                   
+                    G. passport.use(new JwtStrategy(opts, (jwt_payload, done) => {
+                          // ... Lógica de verificación ...
+                        }));
+                        1. passport.use(...): Registra la nueva estrategia de autenticación con passport.
+
+                        2. new JwtStrategy(opts, (jwt_payload, done) => { ... }): 
+                           Crea una nueva instancia de la estrategia. La función callback que le sigue es el corazón de la lógica de autenticación y se ejecuta solo si el token es válido y no ha expirado.
+
+                          2.1  jwt_payload:
+                               Es el contenido decodificado del token (por ejemplo, { id: 123, iat: ..., exp: ... }).
+
+                          2.2  done: 
+                                Es una función de callback que se debe llamar al finalizar la verificación.
+                   
+                   H. User.findById(jwt_payload.id, (err, user) => { ... });
+                      Busca un usuario en la base de datos usando el id que estaba dentro del payload del token decodificado.
+
+                        1. Si hay un error de base de datos (if (err)), llama a done(err, false), lo que indica un error y que la autenticación debe fallar.
+
+                        2. Si se encuentra el usuario (if (user)), llama a done(null, user). Esto es exitoso: el primer argumento (null) indica que no hay error, y el segundo (user) adjunta el objeto user a la solicitud (e.g., req.user en Express).
+
+                        3. Si el token es válido pero el usuario ya no existe en la base de datos (por ejemplo, fue eliminado), llama a done(null, false). La autenticación falla sin lanzar un error.  
+                   I. module.exports = passport;
+                      Exporta la instancia de passport que ahora tiene registrada la estrategia JWT. Este objeto se puede importar en los endpoints de tu aplicación para proteger rutas (por ejemplo, con passport.authenticate
+                      ('jwt', { session: false })).   
+                |                                                                                                                                      |
                 └ --------------------------------------------------------------------------------------------------------------------------------------- ┘
 
 |------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
