@@ -1143,12 +1143,106 @@
                 |                                                                                                                                         |
                   EXPLICACIÓN:   
                     
-                    ⦿  XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
+                    ⦿  Este es un controlador de usuarios (User Controller) típico en una aplicación Node.js/Express, que gestiona la 
+                        autenticación (login, register) y las operaciones CRUD (Crear, Leer, Actualizar, Eliminar) básicas para los usuarios.
 
                 |---------------------------------------------------------------------------------------------------------------------------------------- |
                 
-                    A.   XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
-                    B.   XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
+                    A.  const User = require('../models/user');
+                        Importa el modelo User, que se encarga de manejar las operaciones con la base de datos relacionadas con los usuarios (por ejemplo, findByEmail).
+                    
+                    B.   const bcrypt = require('bcryptjs');
+                        Importa jsonwebtoken, que permite crear y verificar tokens JWT (JSON Web Tokens), usados para autenticar usuarios.
+
+                    C. const keys = require('../config/keys');
+                        Importa un archivo de configuración (keys) donde normalmente está guardada la clave secreta usada para firmar los tokens JWT (keys.secretOrKey).
+
+                    D.  const email = req.body.email;
+                        const password = req.body.password;    
+                        Extrae el email y password enviados por el usuario desde el cuerpo de la petición (req.body).
+
+                    E. User.findByEmail(email, async (err, myUser) => {
+                        ...
+                        });    
+
+                        1. Llama al método findByEmail del modelo User para buscar un usuario con el email dado.
+                        2. Recibe dos argumentos:
+                              err: si ocurrió un error durante la búsqueda.
+                              myUser: el usuario encontrado (si existe).
+                        3. if (err) {
+                              return res.status(501).json({
+                                success: false,
+                                message: 'Error al consultar el usuario',
+                                error: err
+                               });
+                             }
+                           Si ocurre un error (por ejemplo, problema con la base de datos):
+                            * Devuelve una respuesta con código 501 (error del servidor).
+                            * Indica que hubo un error al consultar el usuario.  
+
+                     F. if (!myUser) {
+                          return res.status(401).json({
+                              success: false,
+                              message: 'El email no existe en la base de datos'
+                          });
+                         }   
+
+                         Si myUser es null o undefined:
+                            * Devuelve un error 401 (no autorizado).
+                            * Informa que el email no está registrado.
+
+                     G. const isPasswordValid = await bcrypt.compare(password, myUser.password);      
+                        Compara la contraseña enviada (password) con la contraseña encriptada guardada en la base de datos (myUser.password).
+                        Devuelve true si coinciden, false si no. 
+
+                     H. if (isPasswordValid) {
+                          const token = jwt.sign(
+                              { id: myUser.id, email: myUser.email, role: myUser.role },
+                              keys.secretOrKey,
+                              { expiresIn: '1h' }
+                          );   
+                        1. jwt.sign(payload, secret, options) genera un token JWT.
+
+                        2. Payload: { id, email, role } → información que se incluirá en el token.
+
+                        3. Secret: keys.secretOrKey → clave secreta para firmar el token.
+
+                        4. Options: { expiresIn: '1h' } → el token expirará en 1 hora.
+
+                     I. const data = {
+                            id: myUser.id,
+                            email: myUser.email,
+                            name: myUser.name,
+                            lastname: myUser.lastname,
+                            image: myUser.image,
+                            phone: myUser.phone,
+                            role: myUser.role,
+                            session_token: `JWT ${token}`
+                        };
+
+                        1. Se crea un objeto data con toda la información relevante del usuario y el token de sesión.
+                        2. session_token guarda el token generado, precedido de "JWT " para seguir un formato estándar en encabezados HTTP.
+
+                      H. return res.status(201).json({
+                              success: true,
+                              message: 'Usuario autenticado',
+                              data: data
+                          });
+
+                         1. Devuelve una respuesta con código 201 (creado correctamente). 
+                         2. Indica que el usuario se autenticó exitosamente.
+                         3. Incluye los datos del usuario y su token.
+                      I. } else {
+                                return res.status(401).json({
+                                    success: false,
+                                    message: 'Contraseña o correo incorrecto'
+                                });
+                            }   
+
+                         1.  Si isPasswordValid es false:
+                         2.  Devuelve error 401 (no autorizado).
+                         3.  Indica que las credenciales son incorrectas.  
+
                 |                                                                                                                                         |
                 └ --------------------------------------------------------------------------------------------------------------------------------------- ┘
 
@@ -1211,13 +1305,61 @@
                 |                                                                                                                                         |
                   EXPLICACIÓN:   
                     
-                    ⦿  XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
+                    ⦿  Su propósito principal es manejar toda la lógica de negocio relacionada con los usuarios, incluyendo el inicio de sesión 
+                    (generación de JWT), el registro y las operaciones CRUD (Crear, Leer, Actualizar, Eliminar) contra la base de datos.
 
                 |---------------------------------------------------------------------------------------------------------------------------------------- |
                 
-                    A.   XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
-                    B.   XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.
-                |                                                                                                                                         |
+                    A.   const User = require('../models/user');
+                         Carga el Modelo de Usuario, que contiene los métodos para interactuar con la base de datos (p. ej., findByEmail, create, update, delete). 
+                    
+                    B.   const bcrypt = require('bcryptjs');
+                         Carga la librería bcryptjs para comparar contraseñas de forma segura (las contraseñas almacenadas deben estar hasheadas).    
+
+                    C.   const jwt = require('jsonwebtoken');
+                          Carga la librería jsonwebtoken para crear (firmar) los tokens de sesión (JWT) después de un inicio de sesión exitoso.
+
+                    D.  const keys = require('../config/keys');
+                        Carga la clave secreta (secretOrKey) del archivo de configuración para firmar los JWT.
+
+                    E. login(req, res)
+                        Esta es la función más importante para la autenticación. Procesa una solicitud de inicio de sesión.
+
+                        1. const email = req.body.email;...
+                           Extrae el email y la contraseña enviados en el cuerpo de la solicitud (del formulario de inicio de sesión).
+
+                        2. User.findByEmail(email, async (err, myUser) => { ... }
+                            Llama a un método del modelo para buscar un usuario por email.
+
+                        3. if (err) { ... }
+                           Maneja errores de base de datos (código 501).
+
+                        4. if (!myUser) { ... }
+                           Si el email no se encuentra en la DB, devuelve un error de No Autorizado (código 401). 
+
+                        5. const isPasswordValid = await bcrypt.compare(password, myUser.password);
+                           Compara la contraseña enviada por el usuario con la contraseña hasheada guardada en la base de datos de manera segura.
+
+                        6. if (isPasswordValid) { ... }
+                           Si la contraseña es válida:
+
+                           6.1 const token = jwt.sign( ... );
+                                Genera un JWT firmando el payload (ID, email, rol) con la clave secreta y estableciendo una caducidad de 1 hora ('1h').
+
+                           6.2 const data = { ... };
+                                Crea un objeto data con la información del usuario y el token de sesión con el prefijo JWT (formato estándar de Bearer token para JWT).
+                           
+                           6.3 return res.status(201).json({ ... });
+                                Envía una respuesta de Creación exitosa (código 201) con los datos del usuario y el token.  
+
+                           6.4 } else { ... }
+                               Si la contraseña es inválida, devuelve un error de No Autorizado (código 401) indicando credenciales incorrectas.
+                    F.    
+
+
+
+
+                |                                                                                                                                     |
                 └ --------------------------------------------------------------------------------------------------------------------------------------- ┘
 
 |------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
