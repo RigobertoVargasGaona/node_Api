@@ -874,8 +874,10 @@
                         Define una propiedad llamada secretOrKey dentro del objeto de configuración.
                         process.env.JWT_SECRET: Aquí es donde entra en juego la línea 1. Accede a la variable de entorno con el nombre JWT_SECRET que fue cargada 
                         del archivo .env y asigna su valor a la propiedad secretOrKey.
-                       
 
+                
+
+                                  
                 |                                                                                                                                         |
                 └ --------------------------------------------------------------------------------------------------------------------------------------- ┘
                     
@@ -1242,7 +1244,184 @@
                          1.  Si isPasswordValid es false:
                          2.  Devuelve error 401 (no autorizado).
                          3.  Indica que las credenciales son incorrectas.  
+                     
+                      J.  return res.status(200).json({
+                              success: true,
+                              message: 'Lista de usuarios',
+                              data: users
+                          }); 
 
+                          Si no hubo error, responde con:
+
+                          Código HTTP 200 (OK).
+                          Un JSON con:
+                          success: true → indica éxito.
+                          message → mensaje descriptivo.
+                          data: users → la lista de usuarios obtenida desde la base de datos.
+
+                      K. Su función es buscar un usuario específico en la base de datos, según el ID que viene en la URL
+
+                         1. getUserById(req, res) {
+                          Define la función getUserById, que recibe los objetos:
+                            req: la solicitud HTTP (request).
+                            res: la respuesta HTTP (response).
+
+                         2. const id = req.params.id;
+                            Obtiene el parámetro id de la URL.
+                            Ejemplo: si la ruta es /users/5, entonces req.params.id será "5".
+                            Guarda ese valor en una constante llamada id. 
+
+                         3.  User.findById(id, (err, user) => {
+                             Llama al método findById del modelo User para buscar un usuario en la base de datos con ese id.
+
+                              El método recibe dos argumentos:
+                              id: el identificador del usuario.
+                              Un callback que recibe:
+                              err: error en caso de que ocurra algo durante la búsqueda.
+                              user: el usuario encontrado (o null/undefined si no existe).   
+                         4.  if (err) {
+                             Verifica si ocurrió un error al realizar la consulta en la base de dato
+
+
+                         5. return res.status(501).json({
+                                success: false,
+                                message: 'Error al consultar el usuario',
+                                error: err
+                            });
+                            - Si hay un error, detiene la ejecución y envía una respuesta HTTP con código 501 (Error Interno del Servidor), 
+                            - que indica un problema al procesar la solicitud.
+                            - Indica en el cuerpo de la respuesta que la operación falló.
+                            - Proporciona un mensaje descriptivo del error.
+                            - Incluye el objeto de error detallado para facilitar la depuración.
+
+                         6. if (!user) {
+                                  return res.status(404).json({
+                                      success: false,
+                                      message: 'Usuario no encontrado'
+                                  });
+                              }
+
+                            - Si no se encuentra, detiene la ejecución y envía una respuesta HTTP con código 404 (No Encontrado).
+                            - Indica que la operación de encontrar fue infructuosa.
+                            - Proporciona un mensaje que indica que el recurso no existe.
+                            - Cierra el objeto JSON y la respuesta.
+                            - Cierra el bloque if (!user).
+
+                         7.  return res.status(200).json({
+                                  success: true,
+                                  message: 'Usuario encontrado',
+                                  data: user
+                              });   
+                            - Si el usuario fue encontrado (los bloques if anteriores no se ejecutaron), envía una respuesta HTTP con código 200 
+                              (OK), indicando éxito.
+                            - Indica que la operación fue exitosa.
+                            - Proporciona un mensaje de éxito.
+                            - Incluye el objeto del usuario recuperado de la base de datos.
+                            - Cierra el objeto JSON y la respuesta.
+                            - Cierra el callback de User.findById.
+                       L. Este código es un controlador de registro que se encarga de recibir los datos de un nuevo usuario y guardarlos en la base 
+                          de datos. 
+
+                          1. register(req, res) {
+                             Define la función controladora. Recibe el objeto de la petición (req) y el objeto de la respuesta (res).
+
+                          2. const user = req.body;
+                               Extrae los datos que el cliente envió en el cuerpo de la petición (el body). Estos datos (nombre, email, contraseña, etc.)
+                                se almacenan en la variable user.  
+                          
+                          3. if (!user.role) {
+                             Comprueba si el objeto user no incluye un campo para el rol (role). Esto es para asignar un rol por defecto.
+                          
+                          4. user.role = 'user';
+                             Si el rol no se especificó en la petición, asigna el rol por defecto como 'user' al nuevo registro.
+
+                          5. User.create(user, (err, data) => {
+                              Llama al método estático create del modelo User (Mongoose). Este método intenta crear y guardar un nuevo documento en 
+                              la base de datos utilizando el objeto user. Recibe un callback con un posible error (err) o los datos del usuario recién 
+                              creado (data).
+
+                          6. if (err) {
+                             Comprueba si ocurrió un error durante el intento de creación (ej. campos requeridos faltantes, validación fallida, email 
+                             duplicado, error de conexión a la BD). 
+
+                             - return res.status(501).json({ // Si hay un error, detiene la ejecución y envía una respuesta HTTP con código 501 (Error Interno del Servidor).      
+                             - success: false,// Indica que la operación falló.
+                             - message: 'Error al crear al usuario'// Proporciona un mensaje que indica el fallo en la creación.
+                             - error: err //incluye el objeto de error detallado para la depuración.
+                             - } else {//	Si no hubo un error (err es null), se ejecuta este bloque, que es la respuesta de éxito.
+                             - return res.status(201).json({	//Detiene la ejecución y envía una respuesta HTTP con código 201 (Created). El código 201 es el estándar HTTP para 
+                               una creación exitosa de un nuevo recurso.
+                             - success: true,	//Indica que la operación fue exitosa.
+                             - message: 'Usuario creado correctamente',	//Proporciona un mensaje de confirmación.
+                             - data: data//	Incluye los datos del usuario recién creado (incluyendo el _id asignado por la base de datos).
+                             - });//Cierra el callback de User.create.
+                             - },	Cierra la definición de la función register.
+
+                      M. Se encarga de actualizar la información de un usuario existente en la base de datos.
+                          
+                          1.  getUserUpdate(req, res) {
+                              Define la función controladora que manejará la petición de actualización. Recibe la petición (req) y la respuesta (res).
+
+                             - const user = req.body; //	Extrae los datos que contienen los nuevos valores para el usuario (por ejemplo, nuevo nombre, nueva contraseña, etc.) del cuerpo
+                               de la petición (req.body). Estos datos se guardan en la variable user.  
+                             - User.update(user, (err, data) => {	//Llama al método update del modelo User. Este método intenta modificar un registro en la base de datos
+                               con los datos proporcionados en el objeto user. 
+                             - if (err) {	//Comprueba si ocurrió un error al intentar realizar la actualización (ej. error de validación, error de base de datos).
+
+                             - return res.status(501).json({	///Si hay un error, detiene la ejecución y responde con el código 501 (Error Interno del Servidor).
+
+                             - success: false,	//Indica que la operación de actualización falló.
+
+                             - message: 'Error al actualizar el usuario',	//Proporciona un mensaje descriptivo del fallo.
+
+                             - error: err	//Incluye el objeto de error detallado para la depuración.
+
+                             - return res.status(200).json({	Si la actualización fue exitosa, detiene la ejecución y envía una respuesta HTTP con código 200 (OK), 
+                               que es común para las operaciones de modificación (PUT/PATCH).  
+
+                             - success: true,	// Indica que la operación fue exitosa.
+                
+                             -	message: 'Usuario actualizado',	//Proporciona un mensaje de confirmación. 
+                             data: data	Incluye los datos devueltos por la base de datos, que en el caso de Mongoose update suele ser información sobre la cantidad de documentos modificados.
+
+                             -	});	//Cierra el callback de User.update.
+
+                             -	},	//Cierra la definición de la función getUserUpdate. 
+                      
+                      N. se encarga de eliminar un usuario de la base de datos utilizando el ID proporcionado en la URL.
+
+                          1. getUserDelete(req, res) {	Define la función controladora que maneja la solicitud de eliminación.
+                             Recibe la petición (req) y la respuesta (res). 
+
+                             - const id = req.params.id; //	Extrae el ID del usuario a eliminar de los parámetros de la URL 
+                               (req.params.id). Este ID identifica al usuario objetivo.
+
+                             - User.delete(id, (err, data) => {	// Llama al método delete del modelo User. Este método intenta eliminar el documento de la base de datos que corresponde al id 
+                                proporcionado. Recibe un callback con un posible error (err) o los datos del resultado de la operación (data). 
+
+                            - if (err) {	// Comprueba si ocurrió un error al intentar la eliminación (ej. error de conexión a la BD, permisos).
+
+                            -return res.status(501).json({ //	Si hay un error, detiene la ejecución y responde con el código 501 (Error Interno del Servidor).
+
+                            - success: false,	// Indica que la operación falló.
+
+                            - message: 'Error al eliminar el usuario',	// Proporciona un mensaje descriptivo del fallo.
+
+                            - error: err	//Incluye el objeto de error detallado para la depuración.
+
+                            - return res.status(200).json({	//Si la eliminación fue exitosa, detiene la ejecución y envía una respuesta HTTP con código 200 (OK), 
+                              que es un código de éxito estándar para las operaciones de eliminación (DELETE).
+
+                            - success: true,	//Indica que la operación fue exitosa.
+
+                            - message: 'Usuario eliminado',//	Proporciona un mensaje de confirmación. 
+
+                            - data: data	Incluye los datos devueltos por la base de datos, que generalmente 
+                              contienen información sobre cuántos documentos fueron eliminados. 
+
+                            - });	//Cierra el callback de User.delete.
+
+17	                        -  }//	Cierra la definición de la función getUserDelete.  
                 |                                                                                                                                         |
                 └ --------------------------------------------------------------------------------------------------------------------------------------- ┘
 
@@ -1304,58 +1483,54 @@
                 ┌ --------------------------------------------------------------------------------------------------------------------------------------- ┐
                 |                                                                                                                                         |
                   EXPLICACIÓN:   
-                    
-                    ⦿  Su propósito principal es manejar toda la lógica de negocio relacionada con los usuarios, incluyendo el inicio de sesión 
-                    (generación de JWT), el registro y las operaciones CRUD (Crear, Leer, Actualizar, Eliminar) contra la base de datos.
+                    Este fragmento de código es crucial en aplicaciones web modernas, ya que implementa un middleware de seguridad para verificar un token de autenticación, 
+                    típicamente un JWT (JSON Web Token).
+                    Esta función, llamada verifyToken, se ejecuta antes de que el servidor procese una solicitud a una ruta protegida.
 
+
+                | 
                 |---------------------------------------------------------------------------------------------------------------------------------------- |
                 
-                    A.   const User = require('../models/user');
-                         Carga el Modelo de Usuario, que contiene los métodos para interactuar con la base de datos (p. ej., findByEmail, create, update, delete). 
+                 A. const jwt = require('jsonwebtoken');	
+                    Importa la librería jsonwebtoken, que se usa para crear, firmar y verificar tokens JWT
+                 
+                 B. const jwt = require('jsonwebtoken');	
+                    Importa la librería jsonwebtoken, que se usa para crear, firmar y verificar tokens JWT
+
+                 C. function verifyToken(req, res, next) {	
+                     Define la función middleware. Los middlewares en Express reciben la petición (req), la respuesta 
+                     (res) y una función next() que indica que deben continuar con la siguiente función en la cadena de manejo de la ruta.   
+
+                    1. const authHeader = req.headers['authorization'];//	Extrae el encabezado de la petición llamado Authorization. Los tokens 
+                       JWT suelen enviarse aquí en el formato: Bearer <token>
+
+                    2. if (!authHeader) { //	Comprueba si el encabezado Authorization no fue proporcionado en la petición.   
+                       
+                       - return res.status(403).json({	Si falta el encabezado, detiene la ejecución y responde con código 403 (Forbidden - Prohibido/Acceso denegado).     
+                       - message: 'No se proporcionó un token'	Explica por qué se deniega el acceso.
+
+                    3. const token = authHeader.split(' ')[1];	Si el encabezado existe, lo divide por el espacio ( ). Asume el formato Bearer <token> y toma el 
+                       segundo elemento, que es el token JWT puro.  
+
+                       - if (!token) {	Comprueba si después de dividir, el token no se pudo extraer (ej. si el encabezado solo decía "Bearer" sin token).  
+                       - return res.status(403).json({	Si el formato es incorrecto, detiene la ejecución y responde con código 403.
+                       - message: 'Formato de token inválido'	Explica el error.
+
+                    4 jwt.verify(token, keys.secretOrKey, (err, decoded) => {	Llama a la función de verificación de la librería jsonwebtoken. Intenta decodificar el token
+                      usando la clave secreta. Recibe un callback con un posible error (err) o el contenido decodificado del token (decoded).    
+
+                       - if (err) {	Comprueba si la verificación falló (ej. el token fue alterado, la firma no coincide o el token ha expirado).
+                       - return res.status(401).json({	Si la verificación falla, detiene la ejecución y responde con código 401 (Unauthorized - No autorizado).
+                       - message: 'Token inválido o expirado',	Proporciona un mensaje de acceso denegado por token incorrecto.
+                       - }	Cierra el bloque de error.
                     
-                    B.   const bcrypt = require('bcryptjs');
-                         Carga la librería bcryptjs para comparar contraseñas de forma segura (las contraseñas almacenadas deben estar hasheadas).    
+                    5. req.user = decoded;	Si la verificación es exitosa, el contenido decodificado del token (que contiene datos como el ID del usuario) se adjunta al objeto req. 
+                       Ahora, las rutas que vengan después podrán acceder a req.user.
 
-                    C.   const jwt = require('jsonwebtoken');
-                          Carga la librería jsonwebtoken para crear (firmar) los tokens de sesión (JWT) después de un inicio de sesión exitoso.
-
-                    D.  const keys = require('../config/keys');
-                        Carga la clave secreta (secretOrKey) del archivo de configuración para firmar los JWT.
-
-                    E. login(req, res)
-                        Esta es la función más importante para la autenticación. Procesa una solicitud de inicio de sesión.
-
-                        1. const email = req.body.email;...
-                           Extrae el email y la contraseña enviados en el cuerpo de la solicitud (del formulario de inicio de sesión).
-
-                        2. User.findByEmail(email, async (err, myUser) => { ... }
-                            Llama a un método del modelo para buscar un usuario por email.
-
-                        3. if (err) { ... }
-                           Maneja errores de base de datos (código 501).
-
-                        4. if (!myUser) { ... }
-                           Si el email no se encuentra en la DB, devuelve un error de No Autorizado (código 401). 
-
-                        5. const isPasswordValid = await bcrypt.compare(password, myUser.password);
-                           Compara la contraseña enviada por el usuario con la contraseña hasheada guardada en la base de datos de manera segura.
-
-                        6. if (isPasswordValid) { ... }
-                           Si la contraseña es válida:
-
-                           6.1 const token = jwt.sign( ... );
-                                Genera un JWT firmando el payload (ID, email, rol) con la clave secreta y estableciendo una caducidad de 1 hora ('1h').
-
-                           6.2 const data = { ... };
-                                Crea un objeto data con la información del usuario y el token de sesión con el prefijo JWT (formato estándar de Bearer token para JWT).
-                           
-                           6.3 return res.status(201).json({ ... });
-                                Envía una respuesta de Creación exitosa (código 201) con los datos del usuario y el token.  
-
-                           6.4 } else { ... }
-                               Si la contraseña es inválida, devuelve un error de No Autorizado (código 401) indicando credenciales incorrectas.
-                    F.    
-
+                       - next();	Llama a next(). Esto es fundamental: le indica a Express que el middleware de verificación terminó y que debe continuar ejecutando el siguiente 
+                        controlador de la ruta solicitada. 
+                       - });	Cierra el callback de jwt.verify.
+                       - }	Cierra la definición de la función verifyToken
 
 
 
